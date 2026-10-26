@@ -590,6 +590,12 @@ body {
   gap: 0.5rem;
 }
 
+.json-help {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
 .json-editor {
   font-family: var(--mono);
   font-size: 0.8rem;
@@ -699,7 +705,7 @@ body {
 
 .sdlc-card {
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 6px;
   background: #fafbfc;
   overflow: hidden;
 }
