@@ -233,6 +233,32 @@ body {
   padding: 0.35rem 0.7rem;
 }
 
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.btn-icon .icon {
+  font-size: 1.1em;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.btn-icon-only {
+  min-width: 2rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  font-size: 1.15rem;
+  line-height: 1;
+  color: var(--text-muted);
+}
+
+.btn-icon-only:hover {
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+
 .form-hint {
   font-size: 0.85rem;
 }
@@ -920,6 +946,14 @@ body {
   gap: 1rem;
 }
 
+.edit-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
 .edit-card {
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -935,12 +969,30 @@ body {
   margin-bottom: 0.75rem;
 }
 
+.edit-card-header .edit-input {
+  flex: 1;
+  min-width: 120px;
+}
+
 .edit-subheading {
   margin: 0.75rem 0 0.5rem;
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-muted);
+}
+
+.edit-subheading-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.edit-subheading-row .edit-subheading {
+  margin: 0;
 }
 
 .edit-field {
