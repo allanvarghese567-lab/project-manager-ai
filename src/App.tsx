@@ -17,7 +17,6 @@ function App() {
 
   const handleGenerate = useCallback(() => {
     setIsGenerating(true);
-    // Synchronous template generation — brief delay only for UI feedback
     window.setTimeout(() => {
       const next = generateOnboardingPlan(form);
       setPlan(next);
@@ -45,9 +44,12 @@ function App() {
     setPlan(next);
   }, []);
 
-  /** Called when user applies pasted JSON — updates form fields from the plan */
   const handleApplyForm = useCallback((nextForm: FormState) => {
     setForm(nextForm);
+  }, []);
+
+  const handlePlanChange = useCallback((next: OnboardingPlan) => {
+    setPlan(next);
   }, []);
 
   return (
@@ -106,14 +108,10 @@ function App() {
           </div>
 
           <div className="tab-panel" role="tabpanel">
-            {tab === 'ui' && <PlanView plan={plan} />}
-            {tab === 'sdlc' && <SdlcView plan={plan} />}
+            {tab === 'ui' && <PlanView plan={plan} onPlanChange={handlePlanChange} />}
+            {tab === 'sdlc' && <SdlcView plan={plan} onPlanChange={handlePlanChange} />}
             {tab === 'json' && (
-              <JsonView
-                plan={plan}
-                onValidPlan={handleValidPlan}
-                onApplyForm={handleApplyForm}
-              />
+              <JsonView plan={plan} onValidPlan={handleValidPlan} onApplyForm={handleApplyForm} />
             )}
           </div>
         </section>
