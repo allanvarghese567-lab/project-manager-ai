@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import type { OnboardingPlan, Phase, Risk, Task, TaskStatus } from '../types/plan';
-import { exportAsDoc, exportAsPdf, exportAsPng, nextStatus } from '../utils/exportPlan';
+import { exportAsDoc, exportAsJson, exportAsPdf, exportAsPng, nextStatus } from '../utils/exportPlan';
 
 interface PlanViewProps {
   plan: OnboardingPlan | null;
@@ -20,7 +20,17 @@ function statusTone(status: string): string {
   return 'neutral';
 }
 
-function ExportBar({ elementId, title, name }: { elementId: string; title: string; name: string }) {
+function ExportBar({
+  elementId,
+  title,
+  name,
+  plan,
+}: {
+  elementId: string;
+  title: string;
+  name: string;
+  plan: OnboardingPlan;
+}) {
   return (
     <div className="export-bar">
       <span className="export-label">Download</span>
@@ -32,6 +42,13 @@ function ExportBar({ elementId, title, name }: { elementId: string; title: strin
       </button>
       <button type="button" className="btn btn-secondary btn-sm" onClick={() => void exportAsPng(elementId, name)}>
         PNG
+      </button>
+      <button
+        type="button"
+        className="btn btn-secondary btn-sm"
+        onClick={() => exportAsJson(plan, name)}
+      >
+        JSON
       </button>
     </div>
   );
@@ -393,6 +410,7 @@ export function PlanView({ plan, onPlanChange }: PlanViewProps) {
             elementId="onboarding-export-root"
             title={`${plan.project.name} — Onboarding Plan`}
             name={`${plan.project.name}-onboarding`}
+            plan={plan}
           />
         )}
       </div>
