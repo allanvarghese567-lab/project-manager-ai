@@ -16,6 +16,32 @@ function safeName(name: string): string {
   return (name || 'plan').replace(/[^a-z0-9-_]+/gi, '-').slice(0, 60);
 }
 
+/** Escape a CSV cell (RFC-style). */
+function csvCell(value: unknown): string {
+  const s = value == null ? '' : String(value);
+  if (/[",\n\r]/.test(s)) {
+    return `"${s.replace(/"/g, '""')}"`;
+  }
+  return s;
+}
+
+/** Build CSV text from header + rows. */
+export function rowsToCsv(headers: string[], rows: (string | number)[][]): string {
+  const lines = [
+    headers.map(csvCell).join(','),
+    ...rows.map((row) => row.map(csvCell).join(',')),
+  ];
+  return lines.join('\r\n');
+}
+
+/** Download CSV content. */
+export function exportAsCsv(headers: string[], rows: (string | number)[][], filenameBase: string) {
+  const text = rowsToCsv(headers, rows);
+  // BOM helps Excel open UTF-8 correctly
+  const blob = new Blob(['\ufeff', text], { type: 'text/csv;charset=utf-8' });
+  downloadBlob(blob, `${safeName(filenameBase)}.csv`);
+}
+
 /** Download the plan object as pretty-printed JSON. */
 export function exportAsJson(data: unknown, filenameBase: string) {
   if (data == null) {
