@@ -50,11 +50,7 @@ function ExportBar({
       <button type="button" className="btn btn-secondary btn-sm" onClick={() => void exportAsPng(elementId, name)}>
         PNG
       </button>
-      <button
-        type="button"
-        className="btn btn-secondary btn-sm"
-        onClick={() => exportAsJson(plan, name)}
-      >
+      <button type="button" className="btn btn-secondary btn-sm" onClick={() => exportAsJson(plan, name)}>
         JSON
       </button>
     </div>
@@ -183,6 +179,10 @@ function ReadonlyBody({ plan }: { plan: OnboardingPlan }) {
   );
 }
 
+function uid(prefix: string) {
+  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
 function EditableBody({
   plan,
   onPlanChange,
@@ -194,26 +194,27 @@ function EditableBody({
     (a, b) => STAGE_ORDER.indexOf(a.id) - STAGE_ORDER.indexOf(b.id)
   );
 
-  const updateStage = (stageId: string, patch: Partial<SdlcStage>) => {
-    const nextStages = plan.sdlc.stages.map((s) => (s.id === stageId ? { ...s, ...patch } : s));
+  const setStages = (nextStages: SdlcStage[]) => {
     onPlanChange({
       ...plan,
       sdlc: { ...plan.sdlc, stages: nextStages },
     });
   };
 
+  const updateStage = (stageId: string, patch: Partial<SdlcStage>) => {
+    setStages(plan.sdlc.stages.map((s) => (s.id === stageId ? { ...s, ...patch } : s)));
+  };
+
   const updateActivity = (stageId: string, activityId: string, patch: Partial<SdlcActivity>) => {
-    const nextStages = plan.sdlc.stages.map((s) => {
-      if (s.id !== stageId) return s;
-      return {
-        ...s,
-        activities: s.activities.map((a) => (a.id === activityId ? { ...a, ...patch } : a)),
-      };
-    });
-    onPlanChange({
-      ...plan,
-      sdlc: { ...plan.sdlc, stages: nextStages },
-    });
+    setStages(
+      plan.sdlc.stages.map((s) => {
+        if (s.id !== stageId) return s;
+        return {
+          ...s,
+          activities: s.activities.map((a) => (a.id === activityId ? { ...a, ...patch } : a)),
+        };
+      })
+    );
   };
 
   const cycleActivityStatus = (stageId: string, activity: SdlcActivity) => {
@@ -222,11 +223,37 @@ function EditableBody({
     });
   };
 
+  const addActivity = (stageId: string) => {
+    const activity: SdlcActivity = {
+      id: uid('act'),
+      title: 'New activity',
+      description: '',
+      owner: 'Project Team',
+      deliverables: [],
+      status: 'not_started',
+    };
+    setStages(
+      plan.sdlc.stages.map((s) =>
+        s.id === stageId ? { ...s, activities: [...s.activities, activity] } : s
+      )
+    );
+  };
+
+  const removeActivity = (stageId: string, activityId: string) => {
+    setStages(
+      plan.sdlc.stages.map((s) =>
+        s.id === stageId
+          ? { ...s, activities: s.activities.filter((a) => a.id !== activityId) }
+          : s
+      )
+    );
+  };
+
   return (
     <div className="edit-view">
       <p className="json-help">
-        Edit stage purpose, activity titles/descriptions, owners, and cycle activity status. Changes update
-        the plan live.
+        Edit stage purpose and activities. Use <strong>+</strong> to add activities, status to cycle, × to
+        remove.
       </p>
       {stages.map((stage, index) => (
         <div key={stage.id} className="edit-card">
@@ -242,7 +269,20 @@ function EditableBody({
               onChange={(e) => updateStage(stage.id, { purpose: e.target.value })}
             />
           </label>
-          <h4 className="edit-subheading">Activities</h4>
+          <div className="edit-subheading-row">
+            <h4 className="edit-subheading">Activities</h4>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm btn-icon"
+              onClick={() => addActivity(stage.id)}
+              title="Add activity"
+            >
+              <span className="icon" aria-hidden="true">
+                +
+              </span>
+              Add activity
+            </button>
+          </div>
           {stage.activities.map((activity) => (
             <div key={activity.id} className="edit-task">
               <div className="edit-task-row">
@@ -259,6 +299,15 @@ function EditableBody({
                   title="Click to cycle status"
                 >
                   {activity.status.replace(/_/g, ' ')}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm btn-icon-only"
+                  onClick={() => removeActivity(stage.id, activity.id)}
+                  title="Remove activity"
+                  aria-label="Remove activity"
+                >
+                  ×
                 </button>
               </div>
               <textarea
@@ -278,6 +327,9 @@ function EditableBody({
               />
             </div>
           ))}
+          {stage.activities.length === 0 && (
+            <p className="form-hint">No activities yet — click Add activity.</p>
+          )}
         </div>
       ))}
     </div>
