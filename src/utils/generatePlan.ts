@@ -42,7 +42,6 @@ function makeTask(
 function buildPhases(form: FormState): Phase[] {
   const domain = form.businessDomain.trim() || 'the business domain (to be confirmed)';
   const stack = form.technologyStack.trim() || 'the current technology stack (to be confirmed)';
-  const status = form.currentStatus.trim() || 'current project status is not fully specified';
   const issues = form.knownIssues.trim();
   const projectName = form.projectName.trim() || 'the project';
 
