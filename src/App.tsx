@@ -45,6 +45,11 @@ function App() {
     setPlan(next);
   }, []);
 
+  /** Called when user applies pasted JSON — updates form fields from the plan */
+  const handleApplyForm = useCallback((nextForm: FormState) => {
+    setForm(nextForm);
+  }, []);
+
   return (
     <div className="app">
       <header className="app-header">
@@ -103,7 +108,13 @@ function App() {
           <div className="tab-panel" role="tabpanel">
             {tab === 'ui' && <PlanView plan={plan} />}
             {tab === 'sdlc' && <SdlcView plan={plan} />}
-            {tab === 'json' && <JsonView plan={plan} onValidPlan={handleValidPlan} />}
+            {tab === 'json' && (
+              <JsonView
+                plan={plan}
+                onValidPlan={handleValidPlan}
+                onApplyForm={handleApplyForm}
+              />
+            )}
           </div>
         </section>
       </main>
