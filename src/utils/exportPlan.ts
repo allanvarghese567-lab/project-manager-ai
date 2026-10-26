@@ -16,6 +16,17 @@ function safeName(name: string): string {
   return (name || 'plan').replace(/[^a-z0-9-_]+/gi, '-').slice(0, 60);
 }
 
+/** Download the plan object as pretty-printed JSON. */
+export function exportAsJson(data: unknown, filenameBase: string) {
+  if (data == null) {
+    window.alert('Nothing to export yet.');
+    return;
+  }
+  const text = JSON.stringify(data, null, 2);
+  const blob = new Blob([text], { type: 'application/json;charset=utf-8' });
+  downloadBlob(blob, `${safeName(filenameBase)}.json`);
+}
+
 /** Open a print window focused on the given element (user can Save as PDF). */
 export function exportAsPdf(elementId: string, title: string) {
   const el = document.getElementById(elementId);
