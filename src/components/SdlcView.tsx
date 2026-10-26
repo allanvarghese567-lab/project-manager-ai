@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { OnboardingPlan, SdlcActivity, SdlcStage, TaskStatus } from '../types/plan';
-import { exportAsDoc, exportAsPdf, exportAsPng, nextStatus } from '../utils/exportPlan';
+import { exportAsDoc, exportAsJson, exportAsPdf, exportAsPng, nextStatus } from '../utils/exportPlan';
 
 interface SdlcViewProps {
   plan: OnboardingPlan | null;
@@ -27,7 +27,17 @@ const STAGE_SHORT: Record<string, string> = {
   maintenance: 'MNT',
 };
 
-function ExportBar({ elementId, title, name }: { elementId: string; title: string; name: string }) {
+function ExportBar({
+  elementId,
+  title,
+  name,
+  plan,
+}: {
+  elementId: string;
+  title: string;
+  name: string;
+  plan: OnboardingPlan;
+}) {
   return (
     <div className="export-bar">
       <span className="export-label">Download</span>
@@ -39,6 +49,13 @@ function ExportBar({ elementId, title, name }: { elementId: string; title: strin
       </button>
       <button type="button" className="btn btn-secondary btn-sm" onClick={() => void exportAsPng(elementId, name)}>
         PNG
+      </button>
+      <button
+        type="button"
+        className="btn btn-secondary btn-sm"
+        onClick={() => exportAsJson(plan, name)}
+      >
+        JSON
       </button>
     </div>
   );
@@ -309,6 +326,7 @@ export function SdlcView({ plan, onPlanChange }: SdlcViewProps) {
             elementId="sdlc-export-root"
             title={`${plan.project.name} — SDLC Plan`}
             name={`${plan.project.name}-sdlc`}
+            plan={plan}
           />
         )}
       </div>
