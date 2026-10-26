@@ -3,11 +3,12 @@ import { ProjectForm } from './components/ProjectForm';
 import { PlanView } from './components/PlanView';
 import { JsonView } from './components/JsonView';
 import { SdlcView } from './components/SdlcView';
+import { CsvView } from './components/CsvView';
 import { EMPTY_FORM, type FormState, type OnboardingPlan } from './types/plan';
 import { generateOnboardingPlan } from './utils/generatePlan';
 import './App.css';
 
-type Tab = 'ui' | 'sdlc' | 'json';
+type Tab = 'ui' | 'sdlc' | 'json' | 'csv';
 
 function App() {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
@@ -99,6 +100,15 @@ function App() {
             <button
               type="button"
               role="tab"
+              aria-selected={tab === 'csv'}
+              className={`tab ${tab === 'csv' ? 'active' : ''}`}
+              onClick={() => setTab('csv')}
+            >
+              CSV View
+            </button>
+            <button
+              type="button"
+              role="tab"
               aria-selected={tab === 'json'}
               className={`tab ${tab === 'json' ? 'active' : ''}`}
               onClick={() => setTab('json')}
@@ -110,6 +120,7 @@ function App() {
           <div className="tab-panel" role="tabpanel">
             {tab === 'ui' && <PlanView plan={plan} onPlanChange={handlePlanChange} />}
             {tab === 'sdlc' && <SdlcView plan={plan} onPlanChange={handlePlanChange} />}
+            {tab === 'csv' && <CsvView plan={plan} />}
             {tab === 'json' && (
               <JsonView plan={plan} onValidPlan={handleValidPlan} onApplyForm={handleApplyForm} />
             )}
