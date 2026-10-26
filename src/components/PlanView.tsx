@@ -43,11 +43,7 @@ function ExportBar({
       <button type="button" className="btn btn-secondary btn-sm" onClick={() => void exportAsPng(elementId, name)}>
         PNG
       </button>
-      <button
-        type="button"
-        className="btn btn-secondary btn-sm"
-        onClick={() => exportAsJson(plan, name)}
-      >
+      <button type="button" className="btn btn-secondary btn-sm" onClick={() => exportAsJson(plan, name)}>
         JSON
       </button>
     </div>
@@ -267,6 +263,10 @@ function ReadonlyBody({ plan }: { plan: OnboardingPlan }) {
   );
 }
 
+function uid(prefix: string) {
+  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
 function EditableBody({
   plan,
   onPlanChange,
@@ -274,40 +274,90 @@ function EditableBody({
   plan: OnboardingPlan;
   onPlanChange: (plan: OnboardingPlan) => void;
 }) {
-  const updatePhase = (phaseId: string, patch: Partial<Phase>) => {
-    const phases = plan.client_onboarding.phases.map((p) =>
-      p.id === phaseId ? { ...p, ...patch } : p
-    );
+  const setPhases = (phases: Phase[]) => {
     onPlanChange({
       ...plan,
       client_onboarding: { ...plan.client_onboarding, phases },
     });
   };
 
+  const updatePhase = (phaseId: string, patch: Partial<Phase>) => {
+    setPhases(plan.client_onboarding.phases.map((p) => (p.id === phaseId ? { ...p, ...patch } : p)));
+  };
+
   const updateTask = (phaseId: string, taskId: string, patch: Partial<Task>) => {
-    const phases = plan.client_onboarding.phases.map((p) => {
-      if (p.id !== phaseId) return p;
-      return {
-        ...p,
-        tasks: p.tasks.map((t) => (t.id === taskId ? { ...t, ...patch } : t)),
-      };
-    });
-    onPlanChange({
-      ...plan,
-      client_onboarding: { ...plan.client_onboarding, phases },
-    });
+    setPhases(
+      plan.client_onboarding.phases.map((p) => {
+        if (p.id !== phaseId) return p;
+        return {
+          ...p,
+          tasks: p.tasks.map((t) => (t.id === taskId ? { ...t, ...patch } : t)),
+        };
+      })
+    );
   };
 
   const cycleTaskStatus = (phaseId: string, task: Task) => {
     updateTask(phaseId, task.id, { status: nextStatus(task.status) as TaskStatus });
   };
 
+  const addPhase = () => {
+    const n = plan.client_onboarding.phases.length + 1;
+    const phase: Phase = {
+      id: uid('phase'),
+      name: `New phase ${n}`,
+      objective: '',
+      tasks: [],
+      expected_outcomes: [],
+      client_decisions_required: [],
+    };
+    setPhases([...plan.client_onboarding.phases, phase]);
+  };
+
+  const removePhase = (phaseId: string) => {
+    if (!window.confirm('Remove this phase and all its tasks?')) return;
+    setPhases(plan.client_onboarding.phases.filter((p) => p.id !== phaseId));
+  };
+
+  const addTask = (phaseId: string) => {
+    const task: Task = {
+      id: uid('task'),
+      title: 'New task',
+      description: '',
+      owner: 'Project Team',
+      priority: 'medium',
+      status: 'not_started',
+      acceptance_criteria: [],
+    };
+    setPhases(
+      plan.client_onboarding.phases.map((p) =>
+        p.id === phaseId ? { ...p, tasks: [...p.tasks, task] } : p
+      )
+    );
+  };
+
+  const removeTask = (phaseId: string, taskId: string) => {
+    setPhases(
+      plan.client_onboarding.phases.map((p) =>
+        p.id === phaseId ? { ...p, tasks: p.tasks.filter((t) => t.id !== taskId) } : p
+      )
+    );
+  };
+
   return (
     <div className="edit-view">
-      <p className="json-help">
-        Edit phase names, objectives, task titles/descriptions, owners, and cycle task status. Changes update
-        the plan live (also reflected in JSON View).
-      </p>
+      <div className="edit-toolbar">
+        <p className="json-help">
+          Edit phases and tasks. Use <strong>+</strong> to add, status buttons to cycle, × to remove.
+        </p>
+        <button type="button" className="btn btn-primary btn-sm btn-icon" onClick={addPhase} title="Add phase">
+          <span className="icon" aria-hidden="true">
+            +
+          </span>
+          Add phase
+        </button>
+      </div>
+
       {plan.client_onboarding.phases.map((phase, index) => (
         <div key={phase.id} className="edit-card">
           <div className="edit-card-header">
@@ -318,6 +368,15 @@ function EditableBody({
               onChange={(e) => updatePhase(phase.id, { name: e.target.value })}
               aria-label={`Phase ${index + 1} name`}
             />
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm btn-icon-only"
+              onClick={() => removePhase(phase.id)}
+              title="Remove phase"
+              aria-label="Remove phase"
+            >
+              ×
+            </button>
           </div>
           <label className="edit-field">
             <span>Objective</span>
@@ -327,7 +386,20 @@ function EditableBody({
               onChange={(e) => updatePhase(phase.id, { objective: e.target.value })}
             />
           </label>
-          <h4 className="edit-subheading">Tasks</h4>
+          <div className="edit-subheading-row">
+            <h4 className="edit-subheading">Tasks</h4>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm btn-icon"
+              onClick={() => addTask(phase.id)}
+              title="Add task"
+            >
+              <span className="icon" aria-hidden="true">
+                +
+              </span>
+              Add task
+            </button>
+          </div>
           {phase.tasks.map((task) => (
             <div key={task.id} className="edit-task">
               <div className="edit-task-row">
@@ -345,6 +417,15 @@ function EditableBody({
                 >
                   {task.status.replace(/_/g, ' ')}
                 </button>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm btn-icon-only"
+                  onClick={() => removeTask(phase.id, task.id)}
+                  title="Remove task"
+                  aria-label="Remove task"
+                >
+                  ×
+                </button>
               </div>
               <textarea
                 rows={2}
@@ -361,6 +442,9 @@ function EditableBody({
               />
             </div>
           ))}
+          {phase.tasks.length === 0 && (
+            <p className="form-hint">No tasks yet — click Add task.</p>
+          )}
         </div>
       ))}
     </div>
